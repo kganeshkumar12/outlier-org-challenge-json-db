@@ -12,6 +12,12 @@ app.use(bodyParser.json())
 
 app.get('/health', api.getHealth)
 
+app.use('/:studentId/:property(*)', middleware.studentParamsValidator)
+
+app.put('/:studentId/:property(*)', api.putStudent)
+app.get('/:studentId/:property(*)', api.getStudent)
+app.delete('/:studentId/:property(*)', api.deleteStudent)
+
 app.use(middleware.handleError)
 app.use(middleware.notFound)
 

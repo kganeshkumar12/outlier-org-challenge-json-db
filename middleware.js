@@ -2,7 +2,8 @@ const { STATUS_CODES } = require('http')
 
 module.exports = {
   notFound,
-  handleError
+  handleError,
+  studentParamsValidator
 }
 
 function handleError (err, req, res, next) {
@@ -16,4 +17,13 @@ function handleError (err, req, res, next) {
 
 function notFound (req, res) {
   res.status(404).json({ error: 'Not Found' })
+}
+
+function studentParamsValidator (req, res, next) {
+  if (req.params.property.length > 0) {
+    next()
+  } else {
+    res.status(404)
+    res.send({ error: 'property parameter is required' })
+  }
 }
