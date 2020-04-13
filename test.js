@@ -2,7 +2,7 @@ const tape = require('tape')
 const jsonist = require('jsonist')
 const fs = require('fs')
 
-const port = (process.env.PORT = process.env.PORT || require('get-port-sync')())
+const port = (process.env.PORT = process.env.PORT || 1337)
 const endpoint = `http://localhost:${port}`
 
 const server = require('./server')
