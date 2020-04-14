@@ -1,7 +1,6 @@
-const fs = require('fs')
 const _ = require('lodash')
 
-const helper = require('./helper')
+const student = require('./student')
 
 module.exports = {
   getHealth,
@@ -14,25 +13,22 @@ async function getHealth (req, res, next) {
   res.json({ success: true })
 }
 
-const studentDirpath = 'data'
-const studentFileformat = '.json'
-
 function putStudent (req, res) {
-  helper.confirmDir(studentDirpath, function () {
-    fs.readFile(studentDirpath + '/' + req.params.studentId + studentFileformat, function (err, filedata) {
-      const studentData = err ? {} : JSON.parse(filedata)
+  student.confirmDir(function () {
+    student.readStudentFile(req.params.studentId, function (err, filedata) {
+      const studentData = err ? {} : filedata
       const propertyArr = req.params.property.split('/')
       _.set(studentData, propertyArr, _.merge(_.get(studentData, propertyArr), req.body))
-      fs.writeFile(studentDirpath + '/' + req.params.studentId + studentFileformat, JSON.stringify(studentData), function (err) {
+      student.writeStudentFile(req.params.studentId, studentData, function (err) {
         if (err) {
-          res.json({ error: 'unable to update' })
+          res.status(500).json({ error: 'Unable to update property' })
         } else {
           // detailed response for debugging
           res.json({
             studentId: req.params.studentId,
             propertyPath: propertyArr,
             propertyValue: req.body,
-            studentData: studentData
+            completeStudentData: studentData
           })
           // simple response
           // res.json({ success: 'updated' })
@@ -43,55 +39,60 @@ function putStudent (req, res) {
 }
 
 function getStudent (req, res) {
-  fs.readFile(studentDirpath + '/' + req.params.studentId + studentFileformat, function (err, filedata) {
+  student.readStudentFile(req.params.studentId, function (err, filedata) {
     if (err) {
-      res.status(404).json({ error: 'Not Found' })
+      res.status(404).json({ error: 'Student not found' })
     } else {
-      const studentData = JSON.parse(filedata)
-      const propertyArr = req.params.property.split('/')
-      if (_.has(studentData, propertyArr)) {
-        const propertyValue = _.get(studentData, propertyArr)
+      const studentData = filedata
+      const propertyArr = req.params.property ? req.params.property.split('/') : null
+      let propertyValue
+      if (propertyArr) {
+        propertyValue = _.has(studentData, propertyArr) ? _.get(studentData, propertyArr) : null
+      } else {
+        propertyValue = studentData
+      }
+      if (propertyValue) {
         // detailed response for debugging
         res.json({
           studentId: req.params.studentId,
           propertyPath: propertyArr,
           propertyValue: propertyValue,
-          studentData: studentData
+          completeStudentData: studentData
         })
         // simple response
         // res.json(propertyValue)
       } else {
-        res.status(404).json({ error: 'Not Found' })
+        res.status(404).json({ error: 'Property not found' })
       }
     }
   })
 }
 
 function deleteStudent (req, res) {
-  fs.readFile(studentDirpath + '/' + req.params.studentId + studentFileformat, function (err, filedata) {
+  student.readStudentFile(req.params.studentId, function (err, filedata) {
     if (err) {
-      res.status(404).json({ error: 'Not Found' })
+      res.status(404).json({ error: 'Student not found' })
     } else {
-      const studentData = JSON.parse(filedata)
+      const studentData = filedata
       const propertyArr = req.params.property.split('/')
       if (_.has(studentData, propertyArr)) {
         _.unset(studentData, propertyArr)
-        fs.writeFile(studentDirpath + '/' + req.params.studentId + studentFileformat, JSON.stringify(studentData), function (err) {
+        student.writeStudentFile(req.params.studentId, studentData, function (err) {
           if (err) {
-            res.json({ error: 'unable to delete' })
+            res.status(500).json({ error: 'Unable to delete property' })
           } else {
             // detailed response for debugging
             res.json({
               studentId: req.params.studentId,
               propertyPath: propertyArr,
-              studentData: studentData
+              completeStudentData: studentData
             })
             // simple response
             // res.json({ success: 'deleted' })
           }
         })
       } else {
-        res.status(404).json({ error: 'Not Found' })
+        res.status(404).json({ error: 'Property not found' })
       }
     }
   })

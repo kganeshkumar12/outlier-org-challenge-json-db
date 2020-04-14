@@ -20,9 +20,7 @@ function notFound (req, res) {
 }
 
 function studentParamsValidator (req, res, next) {
-  if (req.params.property.length < 1) {
-    res.status(400).json({ error: 'property parameter is required' })
-  } else if (req.params.property.slice(-1) === '/') {
+  if (req.params.property.slice(-1) === '/') {
     res.status(400).json({ error: 'property parameter should not contain a trailing slash (/)' })
   } else {
     next()
